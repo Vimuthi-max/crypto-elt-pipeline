@@ -1,6 +1,7 @@
-# Crypto Data Pipeline (ELT) & Live Dashboard
 
-A real-time data pipeline that fetches live cryptocurrency metrics from the CoinGecko API, stores them in a local PostgreSQL database using an ELT (Extract, Load, Transform) pattern, and visualizes the trends on an auto-refreshing Streamlit dashboard.
+# 🚀 Automated End-to-End ELT Crypto Data Pipeline & Live Dashboard
+
+A real-time data pipeline that fetches live cryptocurrency metrics from the CoinGecko API, stores and transforms them in a cloud-hosted PostgreSQL database using an ELT (Extract, Load, Transform) pattern, and visualizes the trends on an auto-refreshing Streamlit dashboard.
 
 ---
 
@@ -12,14 +13,15 @@ Instead of transforming data inside Python, this project dumps the raw API paylo
  [ CoinGecko API ] 
          │ (Python requests)
          ▼
- [ PostgreSQL: `crypto_staging` Table ]  <-- Raw API dump
+ [ PostgreSQL: `crypto_staging` Table ]   <-- Raw API dump
          │ 
          │ (SQL Transformation / Casting)
          ▼
- [ PostgreSQL: `crypto_analytics` Table ] <-- Cleaned & Split Data
+ [ PostgreSQL: `crypto_analytics` Table ] <-- Cleaned & Split Data (Warehouse)
          │ 
+         │ (Decoupled Asset Intelligence Tabs)
          ▼
- [ Streamlit Dashboard ]                 <-- Live UI (Auto-refreshes every 10s)
+ [ Streamlit Dashboard ]                  <-- Live UI (Auto-refreshes every 10s)
 Why this approach?
 ELT Pattern: Ingesting raw data first ensures that if an API payload format changes or network lags, we don't lose data during a mid-flight Python transformation.
 
@@ -52,30 +54,46 @@ CREATE TABLE crypto_analytics (
     extracted_time TIME NOT NULL,
     inserted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-🚀 Setup & Execution
+📈 Dashboard Features
+Asset Intelligence Hub: Decoupled interactive tabs for top crypto tokens (BTC, ETH, SOL, DOGE, ADA).
+
+Watermark Metrics: Computes real-time 24-hour High (Max) and Low (Min) price fluctuations instantly using standard Pandas data structures.
+
+Micro-Trend Analytics: Granular time-series line charts tracked safely using immutable database insertion timestamps (inserted_at).
+
+Production Archive Viewer: Full visual access to the clean, tabular state of the analytical warehouse log with stretched grid handling.
+
+🛠️ Setup & Execution
 Prerequisites
-Python 3.10+
+Python 3.13+
 
-PostgreSQL instance running locally (configured via pgAdmin)
+PostgreSQL Instance (Neon Cloud DB or Local Instance)
 
-1. Install Dependencies
+1. Configure Environment Secrets
+Create a .env file in the root directory (this is securely hidden via .gitignore) and add your database connection string:
+
+Plaintext
+DB_URL=postgresql://your_username:your_password@your_host/neondb?sslmode=require
+2. Install Dependencies
 Bash
 pip install -r requirements.txt
-2. Run Ingestion Pipeline
+3. Run Ingestion Pipeline
 To fetch live data, load it to staging, and transform it into the analytics layer, run:
 
 Bash
 python pipeline.py
-3. Start Dashboard
+(Note: Run this script 3-4 times initially with brief gaps to populate historical plot points for the trend charts).
+
+4. Start Dashboard
 To launch the live dashboard with the 10-second auto-refresh feature:
 
 Bash
 streamlit run dashboard.py
 📂 Project Structure
-pipeline.py - Core ETL/ELT logic (API fetching, DB connection, SQL execution).
+pipeline.py - Core ETL/ELT logic (API fetching, secure .env credential loading, DB connection, SQL production macro execution).
 
-dashboard.py - Streamlit application code with auto-refresh mechanism.
+dashboard.py - Streamlit application code with auto-refresh mechanism, asset-specific metric tracking, and modern layout formatting.
 
 Dockerfile - Container configuration wrapper.
 
-.gitignore - Prevents local environment files and DB passwords from being pushed.
+.gitignore - Prevents local environment files (.env) and cache directories from being pushed.

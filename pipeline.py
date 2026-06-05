@@ -3,18 +3,22 @@ import json
 from datetime import datetime
 import psycopg2
 
-# Database විස්තර
-DB_HOST = "localhost"
-DB_NAME = "crypto_db"
-DB_USER = "postgres"
-DB_PASS = "16455"  
-DB_PORT = "5432"
+import os
+import requests
+import json
+from datetime import datetime
+import psycopg2
+from dotenv import load_dotenv
+
+# .env file loading
+load_dotenv()
+DB_URL = os.getenv("DB_URL")
 
 def fetch_crypto_data():
-    URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true"
+    URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,dogecoin,cardano&vs_currencies=usd&include_24hr_change=true"
     try:
         print("🔄 [1/3] Fetching live data from CoinGecko API...")
-        response = requests.get(URL)
+        response = requests.get(URL, timeout=10)
         if response.status_code == 200:
             raw_data = response.json()
             current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -40,7 +44,7 @@ def run_complete_pipeline(data_list):
     connection = None
     cursor = None
     try:
-        connection = psycopg2.connect(host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASS, port=DB_PORT)
+        connection = psycopg2.connect(DB_URL)
         cursor = connection.cursor()
 
         # --- STEP 1: LOAD TO STAGING ---
@@ -61,11 +65,11 @@ def run_complete_pipeline(data_list):
         """
         cursor.execute(transform_query)
 
-        # --- STEP 3: TRUNCATE STAGING (ඩේටා Clean කිරීම) ---
+        # --- STEP 3: TRUNCATE STAGING (clean data) ---
         print("🧹 Cleaning up Staging Table for the next run...")
         cursor.execute("TRUNCATE TABLE crypto_staging;")
 
-        # හැමදේම සාර්ථක නම් Commit කිරීම
+        # if all are succes now commit
         connection.commit()
         print("\n🏆 [SUCCESS] End-to-End ELT Pipeline Completed Successfully!")
 

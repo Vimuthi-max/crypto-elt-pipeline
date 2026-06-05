@@ -1,15 +1,15 @@
-# 1. කුඩා Python Linux Environment එකක් තෝරා ගැනීම
+# 1. Base Image Setup
 FROM python:3.10-slim
 
-# 2. Container එක ඇතුළේ වැඩ කරන Folder එක සකසා ගැනීම
+# 2. Setup Working Directory
 WORKDIR /app
 
-# 3. Libraries ලැයිස්තුව Container එක ඇතුළට Copy කර ඉන්ස්ටෝල් කිරීම
+# 3. Cache and Install Requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. අපේ pipeline.py කෝඩ් එක Container එක ඇතුළට Copy කිරීම
-COPY pipeline.py .
+# 4. Copy Application Source Code
+COPY . .
 
-# 5. Container එක Run වන විට ක්‍රියාත්මක විය යුතු Command එක
+# 5. Pipeline Entry Point
 CMD ["python", "pipeline.py"]

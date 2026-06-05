@@ -5,3 +5,7 @@ __pycache__/
 env/
 venv/
 .ipynb_checkpoints/
+.env
+
+__pycache__/
+.streamlit/
